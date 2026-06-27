@@ -177,28 +177,31 @@ const Index = () => {
   return (
     <div className="min-h-dvh text-foreground">
       <header className="border-b border-border/50 bg-secondary/40 backdrop-blur">
-        <div className="mx-auto max-w-7xl px-4 py-4 flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h1 className="ink-heading text-2xl sm:text-3xl font-bold text-foreground">
-              🕵 Murdoku — <span className="text-accent">{level.title}</span>
+        <div className="mx-auto max-w-[92rem] px-3 sm:px-4 py-2.5 flex flex-wrap items-center justify-between gap-2">
+          <div className="min-w-0">
+            <h1 className="ink-heading text-xl sm:text-2xl font-bold text-foreground leading-tight">
+              🕵 Murdoku <span className="text-accent">{level.title}</span>
             </h1>
-            <p className="text-sm text-muted-foreground mt-0.5">
-              Difficulty: <span className="uppercase tracking-wide font-semibold text-foreground">{level.difficulty}</span>
-              {" · "}
-              Reconstruct the scene. One person per row & column. Every clue must hold.
+            <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+              Place each suspect once per row/column. Make every clue hold.
             </p>
           </div>
-          <div className="text-xs sm:text-sm text-muted-foreground">
-            Victim: <span className="text-destructive font-semibold">{level.characters.find((c) => c.role === "victim")?.name}</span>
+          <div className="flex flex-wrap items-center gap-1.5 text-[11px] sm:text-xs">
+            <span className="rounded-full border border-ink/10 bg-paper px-2 py-1 uppercase tracking-wide font-semibold text-ink">
+              {level.difficulty}
+            </span>
+            <span className="rounded-full border border-destructive/20 bg-destructive/10 px-2 py-1 font-semibold text-destructive">
+              Victim: {level.characters.find((c) => c.role === "victim")?.name}
+            </span>
           </div>
         </div>
       </header>
 
-      <main className="mx-auto max-w-7xl px-4 py-6 grid gap-6 lg:grid-cols-[320px_minmax(0,1fr)_280px]">
+      <main className="mx-auto max-w-[92rem] px-3 sm:px-4 py-3 sm:py-4 grid gap-3 xl:grid-cols-[240px_minmax(540px,1fr)_250px] lg:grid-cols-[220px_minmax(0,1fr)]">
         {/* Character panel */}
-        <section aria-label="Characters and clues" className="space-y-2 lg:max-h-[calc(100dvh-7rem)] lg:overflow-auto pr-1">
-          <h2 className="ink-heading text-foreground font-semibold uppercase tracking-wider text-xs mb-1">Characters</h2>
-          <div className="grid gap-2 lg:block lg:space-y-2 grid-cols-2 sm:grid-cols-3 lg:grid-cols-1">
+        <section aria-label="Characters and clues" className="space-y-2 lg:max-h-[calc(100dvh-5.25rem)] lg:overflow-auto lg:pr-1 lg:order-1 order-2">
+          <h2 className="ink-heading text-foreground font-semibold uppercase tracking-wider text-xs">Characters</h2>
+          <div className="flex gap-2 overflow-x-auto pb-2 -mx-3 px-3 sm:mx-0 sm:px-0 lg:block lg:space-y-2 lg:overflow-visible lg:pb-0">
             {level.characters.map((ch) => (
               <CharacterCard
                 key={ch.id}
@@ -216,8 +219,8 @@ const Index = () => {
         </section>
 
         {/* Board */}
-        <section aria-label="Game board" className="flex flex-col items-center gap-4">
-          <div className="overflow-x-auto max-w-full p-1">
+        <section aria-label="Game board" className="flex flex-col items-center gap-3 lg:order-2 order-1 min-w-0">
+          <div className="overflow-x-auto max-w-full p-1 rounded-xl bg-background/30">
             <Board
               level={level}
               placements={placements}
@@ -239,7 +242,7 @@ const Index = () => {
 
           {/* Feedback / Solved */}
           {solvedMurderer ? (
-            <div className="paper p-5 w-full max-w-xl text-center border-2 border-accent">
+            <div className="paper p-4 w-full max-w-xl text-center border-2 border-accent">
               <p className="ink-heading text-xs uppercase tracking-widest text-ink/60">Case Closed</p>
               <h2 className="ink-heading text-3xl font-bold mt-1 text-ink">
                 The murderer is <span className="text-destructive">{murdererName}</span>.
@@ -250,25 +253,32 @@ const Index = () => {
               </p>
             </div>
           ) : feedback.length > 0 ? (
-            <div className="paper p-4 w-full max-w-xl border-l-4 border-destructive" role="status" aria-live="polite">
-              <p className="ink-heading font-semibold text-ink">Not quite — here's what's wrong:</p>
-              <ul className="mt-2 space-y-1 text-sm text-ink/80 list-disc list-inside">
-                {feedback.map((f, i) => (
-                  <li key={i}>{f}</li>
-                ))}
-              </ul>
+            <div className="paper p-3 w-full max-w-xl border-l-4 border-destructive" role="status" aria-live="polite">
+              <p className="ink-heading font-semibold text-ink">Not quite — {feedback[0]}</p>
+              {feedback.length > 1 && (
+                <details className="mt-2 group">
+                  <summary className="cursor-pointer rounded-md px-2 py-1 text-xs font-semibold uppercase tracking-wider text-ink/70 outline-none cell-focus">
+                    Show {feedback.length - 1} more detail{feedback.length === 2 ? "" : "s"}
+                  </summary>
+                  <ul className="mt-2 space-y-1 text-sm text-ink/80 list-disc list-inside">
+                    {feedback.slice(1).map((f, i) => (
+                      <li key={i}>{f}</li>
+                    ))}
+                  </ul>
+                </details>
+              )}
             </div>
           ) : null}
         </section>
 
         {/* Right rail */}
-        <aside aria-label="Reference panels" className="space-y-4">
+        <aside aria-label="Reference panels" className="space-y-3 lg:order-3 order-3 lg:col-span-2 xl:col-span-1 xl:max-h-[calc(100dvh-5.25rem)] xl:overflow-auto">
           <RuleHelper />
           <Legend />
-          <div className="paper p-3 text-xs text-ink/70">
-            <p className="ink-heading font-semibold text-ink text-sm uppercase tracking-wider mb-1">Tip</p>
-            <p>Click a placed token to pick the character back up. Use <strong>Mark X</strong> on cells you've ruled out to keep track.</p>
-          </div>
+          <details className="paper p-3 text-xs text-ink/70 group">
+            <summary className="ink-heading font-semibold text-ink text-sm uppercase tracking-wider cursor-pointer outline-none cell-focus">Tip</summary>
+            <p className="mt-2">Click a placed token to pick the character back up. Use <strong>Mark X</strong> on cells you've ruled out to keep track.</p>
+          </details>
         </aside>
       </main>
 

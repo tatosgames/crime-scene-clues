@@ -5,9 +5,13 @@ const occupiable: ObjectType[] = ["car", "chair", "bed"];
 const blocked: ObjectType[] = ["tv", "shelf", "box", "table", "shrub"];
 
 export const Legend = () => (
-  <div className="paper p-3">
-    <h3 className="ink-heading font-semibold text-ink mb-2 text-sm uppercase tracking-wider">Legend</h3>
-    <div className="grid grid-cols-2 gap-3 text-sm">
+  <details className="paper p-3 group">
+    <summary className="ink-heading font-semibold text-ink text-sm uppercase tracking-wider cursor-pointer rounded-md outline-none cell-focus">
+      Legend
+      <span className="ml-2 text-[10px] font-sans normal-case tracking-normal text-ink/60 group-open:hidden">Open</span>
+      <span className="ml-2 hidden text-[10px] font-sans normal-case tracking-normal text-ink/60 group-open:inline">Close</span>
+    </summary>
+    <div className="mt-3 grid grid-cols-2 gap-3 text-sm">
       <div>
         <p className="text-ink/70 text-xs mb-1 font-medium">Can be occupied</p>
         <ul className="space-y-1">
@@ -31,5 +35,5 @@ export const Legend = () => (
         </ul>
       </div>
     </div>
-  </div>
+  </details>
 );

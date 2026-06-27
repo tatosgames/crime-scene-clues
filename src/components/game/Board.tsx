@@ -43,9 +43,9 @@ export const Board = ({ level, placements, marks, selectedCharacterId, selectedT
     <div
       role="grid"
       aria-label={`Crime scene board, ${rows} by ${cols}`}
-      className="inline-grid bg-[hsl(var(--grid-wall))] p-[3px] gap-[1px] rounded-lg shadow-2xl"
+      className="inline-grid bg-[hsl(var(--grid-wall))] p-[3px] gap-[1px] rounded-lg shadow-2xl max-w-full"
       style={{
-        gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
+        gridTemplateColumns: `repeat(${cols}, clamp(2.35rem, 10.5vw, 4.25rem))`,
       }}
     >
       {Array.from({ length: rows }).flatMap((_, r) =>
@@ -89,7 +89,7 @@ export const Board = ({ level, placements, marks, selectedCharacterId, selectedT
               aria-label={cellLabel}
               onClick={() => onCellClick(id)}
               className={cn(
-                "relative aspect-square min-w-[34px] sm:min-w-[44px] md:min-w-[52px] cell-focus",
+                "relative aspect-square min-w-0 cell-focus",
                 "transition-colors text-ink",
                 "hover:brightness-110",
                 selectedTool === "select" && selectedCharacterId && occupiable && "cursor-crosshair",
@@ -108,19 +108,19 @@ export const Board = ({ level, placements, marks, selectedCharacterId, selectedT
               }}
             >
               {label && (
-                <span className="absolute top-0.5 left-1 text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-ink/70 ink-heading pointer-events-none">
+                <span className="absolute top-0.5 left-0.5 sm:left-1 text-[8px] sm:text-[10px] font-bold uppercase tracking-wider text-ink/70 ink-heading pointer-events-none leading-none">
                   {label}
                 </span>
               )}
               {objects.length > 0 && !occupant && (
-                <span className="absolute inset-0 grid place-items-center text-lg sm:text-2xl pointer-events-none" aria-hidden>
+                <span className="absolute inset-0 grid place-items-center text-base sm:text-2xl pointer-events-none" aria-hidden>
                   {objectGlyph[objects[0].type]}
                 </span>
               )}
               {occupant && (
                 <span
                   className={cn(
-                    "absolute inset-1 grid place-items-center rounded-full font-bold ink-heading text-xs sm:text-sm shadow-md",
+                    "absolute inset-1 grid place-items-center rounded-full font-bold ink-heading text-[11px] sm:text-sm shadow-md",
                     occupant.accent,
                     "text-ink ring-2",
                     occupant.role === "victim" ? "ring-destructive" : "ring-ink/30"
