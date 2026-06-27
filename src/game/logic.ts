@@ -3,8 +3,25 @@ import type {
   CellId,
   CharacterDefinition,
   ClueDefinition,
+  ClueType,
   Level,
 } from "./types";
+
+
+export const SUPPORTED_CLUE_TYPES = [
+  "in_area",
+  "not_in_area",
+  "in_row",
+  "in_column",
+  "on_object",
+  "beside_object",
+  "not_beside_object",
+  "area_contains_object",
+  "area_contains_character_matching",
+  "same_area_as_character",
+  "different_area_than_character",
+  "alone_with_victim",
+] as const satisfies readonly ClueType[];
 
 export const parseCell = (id: CellId): [number, number] => {
   const [r, c] = id.split(",").map(Number);
@@ -139,7 +156,7 @@ export const evaluateClue = (
       return resolveMurderer(level, placements).status === "resolved";
     }
     default:
-      return true;
+      throw new Error(`Unsupported clue type: ${String(clue.type)}`);
   }
 };
 
@@ -243,7 +260,15 @@ export const validateBoard = (
 
   // 7. clues
   const ctx = { level, placements };
-  const failingClues = level.clues.filter((cl) => !evaluateClue(cl, ctx));
+  const failingClues: ClueDefinition[] = [];
+  for (const clue of level.clues) {
+    try {
+      if (!evaluateClue(clue, ctx)) failingClues.push(clue);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      feedback.push(`${clue.id} cannot be evaluated: ${message}.`);
+    }
+  }
   if (failingClues.length > 0) {
     feedback.push(`${failingClues.length} clue${failingClues.length > 1 ? "s are" : " is"} not satisfied. Re-check your deductions.`);
   }
