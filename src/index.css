@@ -8,35 +8,51 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Detective board-game palette: warm paper on deep ink */
+    --background: 220 18% 12%;
+    --foreground: 36 30% 94%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card: 36 38% 92%;
+    --card-foreground: 222 30% 14%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover: 36 38% 92%;
+    --popover-foreground: 222 30% 14%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 14 78% 52%;
+    --primary-foreground: 36 38% 96%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 220 16% 22%;
+    --secondary-foreground: 36 30% 94%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 220 14% 20%;
+    --muted-foreground: 36 12% 70%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 42 88% 60%;
+    --accent-foreground: 222 30% 14%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 75% 55%;
+    --destructive-foreground: 36 38% 96%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: 220 12% 28%;
+    --input: 220 12% 24%;
+    --ring: 42 88% 60%;
 
-    --radius: 0.5rem;
+    --paper: 36 38% 92%;
+    --paper-shadow: 222 30% 8%;
+    --ink: 222 30% 14%;
+    --grid-wall: 222 30% 8%;
+
+    /* Area colors (soft, distinct) */
+    --area-kitchen: 28 70% 76%;
+    --area-living: 200 55% 75%;
+    --area-bathroom: 175 50% 75%;
+    --area-bedroom: 320 45% 80%;
+    --area-yard: 110 40% 72%;
+    --area-safe: 45 65% 75%;
+    --area-supply: 20 45% 72%;
+    --area-stairs: 260 35% 78%;
+
+    --radius: 0.75rem;
 
     --sidebar-background: 0 0% 98%;
 
@@ -101,5 +117,31 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+    background-image:
+      radial-gradient(circle at 20% 10%, hsl(220 18% 16%) 0%, transparent 40%),
+      radial-gradient(circle at 80% 90%, hsl(220 18% 16%) 0%, transparent 40%);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+  }
+}
+
+@layer components {
+  .paper {
+    background: hsl(var(--paper));
+    color: hsl(var(--ink));
+    border-radius: var(--radius);
+    box-shadow: 0 6px 18px -8px hsl(var(--paper-shadow) / 0.7), 0 1px 0 hsl(0 0% 100% / 0.4) inset;
+  }
+  .ink-heading {
+    font-family: ui-serif, "Iowan Old Style", "Apple Garamond", Georgia, serif;
+    letter-spacing: -0.01em;
+  }
+  .cell-focus:focus-visible {
+    outline: 3px solid hsl(var(--ring));
+    outline-offset: -3px;
+    z-index: 5;
   }
 }
