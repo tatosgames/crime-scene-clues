@@ -57,6 +57,18 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        area: {
+          kitchen: "hsl(var(--area-kitchen))",
+          living: "hsl(var(--area-living))",
+          bathroom: "hsl(var(--area-bathroom))",
+          bedroom: "hsl(var(--area-bedroom))",
+          yard: "hsl(var(--area-yard))",
+          safe: "hsl(var(--area-safe))",
+          supply: "hsl(var(--area-supply))",
+          stairs: "hsl(var(--area-stairs))",
+        },
+        ink: "hsl(var(--ink))",
+        paper: "hsl(var(--paper))",
       },
       borderRadius: {
         lg: "var(--radius)",
