@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import type { CellId, Level, Mark } from "@/game/types";
 import { cellId, findCharacterAt, getAreaOfCell, getObjectsAtCell, isCellOccupiable, parseCell } from "@/game/logic";
 import { cn } from "@/lib/utils";
@@ -14,8 +14,17 @@ interface Props {
   highlightCell?: CellId | null;
 }
 
-export const Board = ({ level, placements, marks, selectedCharacterId, selectedTool, onCellClick }: Props) => {
+export const Board = ({ level, placements, marks, selectedCharacterId, selectedTool, onCellClick, highlightCell }: Props) => {
   const { rows, cols } = level.grid;
+  const cellRefs = useRef<Record<CellId, HTMLButtonElement | null>>({});
+
+  useEffect(() => {
+    if (!highlightCell) return;
+    const el = cellRefs.current[highlightCell];
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "center", inline: "center" });
+    }
+  }, [highlightCell]);
 
   // Pre-index labels per area (one cell per area gets the label)
   const labelMap = useMemo(() => {
@@ -85,6 +94,7 @@ export const Board = ({ level, placements, marks, selectedCharacterId, selectedT
           return (
             <button
               key={id}
+              ref={(el) => (cellRefs.current[id] = el)}
               role="gridcell"
               aria-label={cellLabel}
               onClick={() => onCellClick(id)}
@@ -94,6 +104,7 @@ export const Board = ({ level, placements, marks, selectedCharacterId, selectedT
                 "hover:brightness-110",
                 selectedTool === "select" && selectedCharacterId && occupiable && "cursor-crosshair",
                 !occupiable && "cursor-not-allowed",
+                highlightCell === id && "ring-4 ring-destructive z-10 animate-pulse",
               )}
               style={{
                 background: area ? `hsl(var(${area.colorVar}))` : "hsl(var(--muted))",

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Board } from "@/components/game/Board";
 import { CharacterCard } from "@/components/game/CharacterCard";
+import { FeedbackBanner } from "@/components/game/FeedbackBanner";
 import { Legend } from "@/components/game/Legend";
 import { MobileCharacterSelector } from "@/components/game/MobileCharacterSelector";
 import { RuleHelper } from "@/components/game/RuleHelper";
@@ -16,7 +17,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { prepperLevel } from "@/game/level";
-import { findCharacterAt, isCellOccupiable, validateBoard } from "@/game/logic";
+import { findCharacterAt, isCellOccupiable, validateBoard, type ValidationIssue } from "@/game/logic";
 import { clearProgress, loadProgress, saveProgress } from "@/game/storage";
 import type { CellId, GameSnapshot, Mark, Tool } from "@/game/types";
 import { useToast } from "@/hooks/use-toast";
@@ -31,6 +32,8 @@ const Index = () => {
   const [cellMarks, setCellMarks] = useState<Record<CellId, Mark>>({});
   const [history, setHistory] = useState<GameSnapshot[]>([]);
   const [feedback, setFeedback] = useState<string[]>([]);
+  const [issues, setIssues] = useState<ValidationIssue[]>([]);
+  const [highlightCell, setHighlightCell] = useState<CellId | null>(null);
   const [solvedMurderer, setSolvedMurderer] = useState<string | null>(null);
   const [resetOpen, setResetOpen] = useState(false);
 
@@ -144,6 +147,7 @@ const Index = () => {
     setSelectedCharacterId(last.selectedCharacterId);
     setSelectedTool(last.selectedTool);
     setFeedback([]);
+    setIssues([]);
     setSolvedMurderer(null);
   };
 
@@ -152,6 +156,7 @@ const Index = () => {
     setCellMarks({});
     setHistory([]);
     setFeedback([]);
+    setIssues([]);
     setSolvedMurderer(null);
     setSelectedCharacterId(level.characters[0].id);
     clearProgress(level.id);
@@ -163,10 +168,40 @@ const Index = () => {
     if (result.solved && result.murdererId) {
       setSolvedMurderer(result.murdererId);
       setFeedback([]);
+      setIssues([]);
     } else {
       setSolvedMurderer(null);
       setFeedback(result.feedback);
+      setIssues(result.issues);
+      if (result.issues[0]) {
+        const t = result.issues[0];
+        toast({
+          title: t.short,
+          description: t.message,
+        });
+      }
     }
+  };
+
+  const handleJumpTo = (issue: ValidationIssue) => {
+    let target = issue.focusCell ?? null;
+    if (!target && issue.focusCharacterId) {
+      target = placements[issue.focusCharacterId] ?? null;
+      setSelectedCharacterId(issue.focusCharacterId);
+      setSelectedTool("select");
+    }
+    if (target) {
+      setHighlightCell(target);
+      window.setTimeout(() => setHighlightCell(null), 1800);
+    }
+    // dismiss banner so the player can act
+    setIssues((arr) => arr.slice(1));
+  };
+
+  const dismissBanner = () => {
+    setIssues([]);
+    setFeedback([]);
+    setSolvedMurderer(null);
   };
 
   const cluesById = useMemo(() => Object.fromEntries(level.clues.map((c) => [c.id, c])), []);
@@ -245,6 +280,7 @@ const Index = () => {
               selectedCharacterId={selectedCharacterId}
               selectedTool={selectedTool}
               onCellClick={handleCellClick}
+              highlightCell={highlightCell}
             />
           </div>
 
@@ -257,35 +293,19 @@ const Index = () => {
             canUndo={history.length > 0}
           />
 
-          {/* Feedback / Solved */}
-          {solvedMurderer ? (
-            <div className="paper p-4 w-full max-w-xl text-center border-2 border-accent">
-              <p className="ink-heading text-xs uppercase tracking-widest text-ink/60">Case Closed</p>
-              <h2 className="ink-heading text-3xl font-bold mt-1 text-ink">
-                The murderer is <span className="text-destructive">{murdererName}</span>.
-              </h2>
-              <p className="text-sm text-ink/70 mt-2">
-                Alone with {level.characters.find((c) => c.role === "victim")?.name} in the {" "}
-                {level.areas.find((a) => a.cellIds.includes(placements[solvedMurderer]))?.name}.
-              </p>
-            </div>
-          ) : feedback.length > 0 ? (
-            <div className="paper p-3 w-full max-w-xl border-l-4 border-destructive" role="status" aria-live="polite">
-              <p className="ink-heading font-semibold text-ink">Not quite — {feedback[0]}</p>
-              {feedback.length > 1 && (
-                <details className="mt-2 group">
-                  <summary className="cursor-pointer rounded-md px-2 py-1 text-xs font-semibold uppercase tracking-wider text-ink/70 outline-none cell-focus">
-                    Show {feedback.length - 1} more detail{feedback.length === 2 ? "" : "s"}
-                  </summary>
-                  <ul className="mt-2 space-y-1 text-sm text-ink/80 list-disc list-inside">
-                    {feedback.slice(1).map((f, i) => (
-                      <li key={i}>{f}</li>
-                    ))}
-                  </ul>
-                </details>
-              )}
-            </div>
-          ) : null}
+          <FeedbackBanner
+            solved={Boolean(solvedMurderer)}
+            murdererName={murdererName}
+            victimName={level.characters.find((c) => c.role === "victim")?.name}
+            areaName={
+              solvedMurderer
+                ? level.areas.find((a) => a.cellIds.includes(placements[solvedMurderer]))?.name
+                : null
+            }
+            issues={issues}
+            onJumpTo={handleJumpTo}
+            onDismiss={dismissBanner}
+          />
         </section>
 
         {/* Right rail */}

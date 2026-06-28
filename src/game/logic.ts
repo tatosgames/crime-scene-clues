@@ -204,8 +204,17 @@ export const getCandidateCells = (level: Level): CandidateInfo[] => {
 export interface ValidationResult {
   ok: boolean;
   feedback: string[];
+  issues: ValidationIssue[];
   solved: boolean;
   murdererId?: string;
+}
+
+export interface ValidationIssue {
+  message: string;
+  short: string;
+  focusCell?: CellId;
+  focusAreaId?: string;
+  focusCharacterId?: string;
 }
 
 export const validateBoard = (
@@ -213,22 +222,47 @@ export const validateBoard = (
   placements: Record<string, CellId>
 ): ValidationResult => {
   const feedback: string[] = [];
+  const issues: ValidationIssue[] = [];
+  const push = (i: ValidationIssue) => {
+    issues.push(i);
+    feedback.push(i.message);
+  };
 
   // 1. all characters placed
   const missing = level.characters.filter((c) => !placements[c.id]);
   if (missing.length > 0) {
-    feedback.push(`Not yet — these are still missing: ${missing.map((m) => m.name).join(", ")}.`);
+    push({
+      message: `Not yet — these are still missing: ${missing.map((m) => m.name).join(", ")}.`,
+      short: `${missing.length} character${missing.length === 1 ? "" : "s"} not placed`,
+      focusCharacterId: missing[0].id,
+    });
   }
 
   // 2. cells exist & 3. occupiable & 4. no duplicates
   const cellsUsed: Record<CellId, string[]> = {};
   for (const [chId, cell] of Object.entries(placements)) {
-    if (!cellExists(level, cell)) feedback.push(`${nameOf(level, chId)} is on a cell that does not exist.`);
-    if (!isCellOccupiable(level, cell)) feedback.push(`${nameOf(level, chId)} is on a cell that cannot be occupied.`);
+    if (!cellExists(level, cell))
+      push({
+        message: `${nameOf(level, chId)} is on a cell that does not exist.`,
+        short: `${nameOf(level, chId)} off-grid`,
+        focusCharacterId: chId,
+      });
+    if (!isCellOccupiable(level, cell))
+      push({
+        message: `${nameOf(level, chId)} is on a cell that cannot be occupied.`,
+        short: `${nameOf(level, chId)} on blocked cell`,
+        focusCell: cell,
+        focusCharacterId: chId,
+      });
     (cellsUsed[cell] ||= []).push(chId);
   }
   for (const [cell, list] of Object.entries(cellsUsed)) {
-    if (list.length > 1) feedback.push(`Two people share a cell (${list.map((id) => nameOf(level, id)).join(" & ")}).`);
+    if (list.length > 1)
+      push({
+        message: `Two people share a cell (${list.map((id) => nameOf(level, id)).join(" & ")}).`,
+        short: `Cell conflict: ${list.map((id) => nameOf(level, id)).join(" & ")}`,
+        focusCell: cell,
+      });
   }
 
   // 5 & 6. row/column
@@ -239,7 +273,13 @@ export const validateBoard = (
       (byRow[r] ||= []).push(chId);
     }
     for (const [r, list] of Object.entries(byRow)) {
-      if (list.length > 1) feedback.push(`Row ${Number(r) + 1} contains more than one person.`);
+      if (list.length > 1)
+        push({
+          message: `Row ${Number(r) + 1} contains more than one person.`,
+          short: `Row ${Number(r) + 1} duplicates`,
+          focusCell: placements[list[0]],
+          focusCharacterId: list[0],
+        });
     }
   }
   if (level.rules.onePerColumn) {
@@ -249,13 +289,19 @@ export const validateBoard = (
       (byCol[c] ||= []).push(chId);
     }
     for (const [c, list] of Object.entries(byCol)) {
-      if (list.length > 1) feedback.push(`Column ${Number(c) + 1} contains more than one person.`);
+      if (list.length > 1)
+        push({
+          message: `Column ${Number(c) + 1} contains more than one person.`,
+          short: `Column ${Number(c) + 1} duplicates`,
+          focusCell: placements[list[0]],
+          focusCharacterId: list[0],
+        });
     }
   }
 
   // Early exit if structural problems and missing characters
   if (missing.length > 0) {
-    return { ok: false, feedback, solved: false };
+    return { ok: false, feedback, issues, solved: false };
   }
 
   // 7. clues
@@ -266,22 +312,44 @@ export const validateBoard = (
       if (!evaluateClue(clue, ctx)) failingClues.push(clue);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      feedback.push(`${clue.id} cannot be evaluated: ${message}.`);
+      push({
+        message: `${clue.id} cannot be evaluated: ${message}.`,
+        short: `Clue error: ${clue.id}`,
+      });
     }
   }
-  if (failingClues.length > 0) {
-    feedback.push(`${failingClues.length} clue${failingClues.length > 1 ? "s are" : " is"} not satisfied. Re-check your deductions.`);
+  for (const clue of failingClues) {
+    const ch = level.characters.find((c) => c.id === clue.characterId);
+    push({
+      message: `${ch?.name ?? clue.characterId}'s clue is not satisfied.`,
+      short: `${ch?.name ?? "Clue"} clue fails`,
+      focusCell: placements[clue.characterId],
+      focusCharacterId: clue.characterId,
+    });
   }
 
   // 8/9. murderer
   const m = resolveMurderer(level, placements);
-  if (m.status === "none") feedback.push("The victim is not alone with a single suspect — the murderer cannot be determined yet.");
-  if (m.status === "multiple") feedback.push("More than one suspect shares the victim's area — the murderer is ambiguous.");
+  const victim = level.characters.find((c) => c.role === "victim");
+  if (m.status === "none")
+    push({
+      message: "The victim is not alone with a single suspect — the murderer cannot be determined yet.",
+      short: "No suspect with victim",
+      focusCharacterId: victim?.id,
+      focusCell: victim ? placements[victim.id] : undefined,
+    });
+  if (m.status === "multiple")
+    push({
+      message: "More than one suspect shares the victim's area — the murderer is ambiguous.",
+      short: "Too many suspects with victim",
+      focusCharacterId: victim?.id,
+      focusCell: victim ? placements[victim.id] : undefined,
+    });
 
   if (feedback.length === 0 && m.status === "resolved") {
-    return { ok: true, feedback: [], solved: true, murdererId: m.murdererId };
+    return { ok: true, feedback: [], issues: [], solved: true, murdererId: m.murdererId };
   }
-  return { ok: false, feedback, solved: false };
+  return { ok: false, feedback, issues, solved: false };
 };
 
 const nameOf = (level: Level, id: string) =>
