@@ -197,9 +197,9 @@ const Index = () => {
         </div>
       </header>
 
-      <main className="mx-auto max-w-[92rem] px-3 sm:px-4 py-3 sm:py-4 grid gap-3 xl:grid-cols-[240px_minmax(540px,1fr)_250px] lg:grid-cols-[220px_minmax(0,1fr)]">
+      <main className="mx-auto max-w-[92rem] px-3 sm:px-4 py-3 sm:py-4 grid gap-3 grid-cols-1 xl:grid-cols-[240px_minmax(540px,1fr)_250px] lg:grid-cols-[220px_minmax(0,1fr)]">
         {/* Character panel */}
-        <section aria-label="Characters and clues" className="space-y-2 lg:max-h-[calc(100dvh-5.25rem)] lg:overflow-auto lg:pr-1 lg:order-1 order-2">
+        <section aria-label="Characters and clues" className="space-y-2 min-w-0 lg:max-h-[calc(100dvh-5.25rem)] lg:overflow-auto lg:pr-1 lg:order-1 order-2">
           <h2 className="ink-heading text-foreground font-semibold uppercase tracking-wider text-xs">Characters</h2>
           <div className="flex gap-2 overflow-x-auto pb-2 -mx-3 px-3 sm:mx-0 sm:px-0 lg:block lg:space-y-2 lg:overflow-visible lg:pb-0">
             {level.characters.map((ch) => (
@@ -272,7 +272,7 @@ const Index = () => {
         </section>
 
         {/* Right rail */}
-        <aside aria-label="Reference panels" className="space-y-3 lg:order-3 order-3 lg:col-span-2 xl:col-span-1 xl:max-h-[calc(100dvh-5.25rem)] xl:overflow-auto">
+        <aside aria-label="Reference panels" className="space-y-3 min-w-0 lg:order-3 order-3 lg:col-span-2 xl:col-span-1 xl:max-h-[calc(100dvh-5.25rem)] xl:overflow-auto">
           <RuleHelper />
           <Legend />
           <details className="paper p-3 text-xs text-ink/70 group">
