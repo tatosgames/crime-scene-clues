@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Board } from "@/components/game/Board";
 import { CharacterCard } from "@/components/game/CharacterCard";
 import { Legend } from "@/components/game/Legend";
+import { MobileCharacterSelector } from "@/components/game/MobileCharacterSelector";
 import { RuleHelper } from "@/components/game/RuleHelper";
 import { ToolPanel } from "@/components/game/ToolPanel";
 import {
@@ -200,8 +201,24 @@ const Index = () => {
       <main className="mx-auto max-w-[92rem] px-3 sm:px-4 py-3 sm:py-4 grid gap-3 grid-cols-1 xl:grid-cols-[240px_minmax(540px,1fr)_250px] lg:grid-cols-[220px_minmax(0,1fr)]">
         {/* Character panel */}
         <section aria-label="Characters and clues" className="space-y-2 min-w-0 lg:max-h-[calc(100dvh-5.25rem)] lg:overflow-auto lg:pr-1 lg:order-1 order-2">
-          <h2 className="ink-heading text-foreground font-semibold uppercase tracking-wider text-xs">Characters</h2>
-          <div className="flex gap-2 overflow-x-auto pb-2 -mx-3 px-3 sm:mx-0 sm:px-0 lg:block lg:space-y-2 lg:overflow-visible lg:pb-0">
+          <h2 className="ink-heading text-foreground font-semibold uppercase tracking-wider text-xs hidden lg:block">Characters</h2>
+
+          {/* Mobile selector */}
+          <div className="lg:hidden">
+            <MobileCharacterSelector
+              characters={level.characters}
+              cluesById={cluesById}
+              placements={placements}
+              selectedCharacterId={selectedCharacterId}
+              onSelect={(id) => {
+                setSelectedCharacterId(id);
+                setSelectedTool("select");
+              }}
+            />
+          </div>
+
+          {/* Desktop list */}
+          <div className="hidden lg:block lg:space-y-2">
             {level.characters.map((ch) => (
               <CharacterCard
                 key={ch.id}
