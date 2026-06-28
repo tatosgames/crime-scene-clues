@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Board } from "@/components/game/Board";
 import { CharacterCard } from "@/components/game/CharacterCard";
 import { Legend } from "@/components/game/Legend";
+import { MobileCharacterSelector } from "@/components/game/MobileCharacterSelector";
 import { RuleHelper } from "@/components/game/RuleHelper";
 import { ToolPanel } from "@/components/game/ToolPanel";
 import {
